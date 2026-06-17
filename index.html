@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FlowGo</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  :root {
+    --teal: #1ABC9C;
+    --teal-dark: #149B80;
+    --ink: #1A1A2E;
+    --gray: #8A8FA3;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, Roboto, Arial, sans-serif; }
+  html, body { height: 100%; width: 100%; overflow: hidden; background: white; }
+
+  .screen { display: none; height: 100%; width: 100%; flex-direction: column; }
+  .screen.active { display: flex; }
+
+  /* ---------- SCREEN 1: Welcome ---------- */
+  #screen1 {
+    background: white;
+    align-items: center;
+    justify-content: space-between;
+    padding: 40px 28px 32px;
+    text-align: center;
+  }
+  #screen1 .illustration { width: 100%; max-width: 280px; margin-top: 10px; }
+  #screen1 .copy-block { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  #screen1 .welcome-to { font-size: 14px; color: var(--gray); }
+  #screen1 .brand { font-size: 32px; font-weight: 700; color: var(--teal); }
+  #screen1 .tagline { font-size: 16px; font-weight: 700; color: var(--ink); margin-top: 6px; }
+  #screen1 .desc { font-size: 13px; color: var(--gray); line-height: 1.6; margin-top: 4px; max-width: 260px; }
+  #screen1 button {
+    width: 100%; background: var(--teal); color: white; border: none; border-radius: 14px;
+    padding: 16px; font-size: 15px; font-weight: 700; cursor: pointer;
+  }
+
+  /* ---------- SCREEN 2: Choose destination ---------- */
+  #screen2 { position: relative; }
+  #map2 { flex: 1; width: 100%; }
+  .pill-badge {
+    position: absolute; top: 14px; left: 14px; z-index: 500;
+    background: var(--ink); color: white; padding: 8px 14px; border-radius: 20px;
+    font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px;
+    max-width: 80%;
+  }
+  #card2 {
+    background: white; border-radius: 20px 20px 0 0; padding: 18px 18px 22px;
+    box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
+  }
+  #card2 h2 { font-size: 18px; color: var(--ink); margin-bottom: 14px; }
+  .row { display: flex; align-items: center; gap: 10px; background: #F4F6F8; border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
+  .row .icon { font-size: 18px; flex-shrink: 0; }
+  .row .label { font-size: 10px; color: var(--gray); }
+  .row .value { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .row.dest { border: 1.5px solid var(--teal); }
+  #findRouteBtn {
+    display: none; width: 100%; background: var(--ink); color: white; border: none;
+    border-radius: 12px; padding: 14px; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 4px;
+  }
+
+  /* ---------- SCREEN 3: Route result ---------- */
+  #screen3 { position: relative; }
+  #map3 { flex: 1; width: 100%; }
+  #backBtn3 {
+    position: absolute; top: 14px; left: 14px; z-index: 500;
+    background: white; border: none; border-radius: 12px; padding: 8px 14px;
+    font-size: 13px; font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15); cursor: pointer;
+  }
+  #statsBar {
+    background: white; display: flex; justify-content: space-between;
+    padding: 16px 22px; box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
+  }
+  #statsBar .stat { text-align: center; }
+  #statsBar .stat .label { font-size: 11px; color: var(--gray); margin-bottom: 4px; }
+  #statsBar .stat .value { font-size: 17px; font-weight: 700; color: var(--ink); }
+  #statsBar .stat .value.clear { color: var(--teal); font-size: 14px; }
+</style>
+</head>
+<body>
+
+  <!-- SCREEN 1: Welcome -->
+  <div id="screen1" class="screen active">
+    <div></div>
+    <svg class="illustration" viewBox="0 0 280 180" xmlns="http://www.w3.org/2000/svg">
+      <g transform="rotate(-6 140 90)">
+        <rect x="40" y="40" width="200" height="110" rx="6" fill="#F4F6F8" stroke="#E2E6EA" stroke-width="1.5"/>
+        <line x1="40" y1="75" x2="240" y2="75" stroke="#E2E6EA" stroke-width="1.5"/>
+        <line x1="40" y1="110" x2="240" y2="110" stroke="#E2E6EA" stroke-width="1.5"/>
+        <line x1="90" y1="40" x2="90" y2="150" stroke="#E2E6EA" stroke-width="1.5"/>
+        <line x1="170" y1="40" x2="170" y2="150" stroke="#E2E6EA" stroke-width="1.5"/>
+        <rect x="55" y="50" width="25" height="18" fill="#D7DEE3" rx="2"/>
+        <rect x="190" y="115" width="30" height="20" fill="#D7DEE3" rx="2"/>
+        <path d="M70 130 Q120 100 150 90 Q190 78 205 55" stroke="#FF5A5F" stroke-width="2.5" fill="none" stroke-dasharray="1 6" stroke-linecap="round"/>
+      </g>
+      <g transform="translate(60,118)"><circle r="10" fill="#FF5A5F"/><circle r="4" fill="white"/></g>
+      <g transform="translate(212,48)"><circle r="10" fill="#FF5A5F"/><circle r="4" fill="white"/></g>
+    </svg>
+    <div class="copy-block">
+      <p class="welcome-to">Welcome to</p>
+      <p class="brand">FlowGo</p>
+      <p class="tagline">Save your time with us</p>
+      <p class="desc">The best app for traffic handlers of the century to save time and make your day great!</p>
+    </div>
+    <button id="getStartedBtn">Get Started</button>
+  </div>
+
+  <!-- SCREEN 2: Choose destination -->
+  <div id="screen2" class="screen">
+    <div class="pill-badge">📍 <span id="pillName">Locating...</span></div>
+    <div id="map2"></div>
+    <div id="card2">
+      <h2>Where do you want to go?</h2>
+      <div class="row">
+        <div class="icon">🗺️</div>
+        <div>
+          <div class="label">Your location</div>
+          <div class="value" id="yourLocationValue">Detecting...</div>
+        </div>
+      </div>
+      <div class="row dest">
+        <div class="icon">📍</div>
+        <div>
+          <div class="label">destination</div>
+          <div class="value" id="destValue">Tap to pick on the map...</div>
+        </div>
+      </div>
+      <button id="findRouteBtn">Find Shortest Route</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: Route result -->
+  <div id="screen3" class="screen">
+    <button id="backBtn3">← Back</button>
+    <div id="map3"></div>
+    <div id="statsBar">
+      <div class="stat"><div class="label">Distance</div><div class="value" id="statDistance">0 Km</div></div>
+      <div class="stat"><div class="label">Est. time</div><div class="value" id="statTime">0 min</div></div>
+      <div class="stat"><div class="label">Traffic</div><div class="value clear" id="statTraffic">Clear</div></div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // ---- CONFIG ----
+    const ORS_API_KEY = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6Ijc0MjEwMzgyMmZhNjRmNjJiNTI5OWM5MTAzYTcwMGU2IiwiaCI6Im11cm11cjY0In0=";
+    const FIXED_LAT = -1.94073;   // Nyabugogo Bus Park, Kigali (corrected to southern hemisphere)
+    const FIXED_LNG = 30.04475;
+
+    let fixedLocationName = "Nyabugogo Bus Park";
+    let destLat = null, destLng = null, destLocationName = null;
+
+    // ---- HELPERS: API CALLS ----
+    async function reverseGeocode(lat, lng) {
+      const url = `https://api.openrouteservice.org/geocode/reverse?api_key=${ORS_API_KEY}&point.lon=${lng}&point.lat=${lat}`;
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.features && data.features.length > 0) {
+          return data.features[0].properties.label;
+        }
+        return "Unknown location";
+      } catch (err) {
+        console.error("Reverse geocode failed:", err);
+        return "Could not look up name";
+      }
+    }
+
+    async function getRoute(startLat, startLng, endLat, endLng) {
+      const url = "https://api.openrouteservice.org/v2/directions/driving-car/geojson";
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Authorization": ORS_API_KEY,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            coordinates: [[startLng, startLat], [endLng, endLat]]
+          })
+        });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          console.error("Route API error:", res.status, errText);
+          return null;
+        }
+
+        const data = await res.json();
+        const feature = data.features[0];
+        const coords = feature.geometry.coordinates.map(c => [c[1], c[0]]); // [lng,lat] -> [lat,lng]
+        const summary = feature.properties.summary;
+        return {
+          coords: coords,
+          distanceKm: (summary.distance / 1000).toFixed(1),
+          durationMin: Math.round(summary.duration / 60)
+        };
+      } catch (err) {
+        console.error("Route lookup failed:", err);
+        return null;
+      }
+    }
+
+    // ---- SCREEN NAVIGATION ----
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    // ---- SCREEN 1 ----
+    document.getElementById('getStartedBtn').addEventListener('click', () => {
+      showScreen('screen2');
+      setTimeout(() => map2.invalidateSize(), 100);
+    });
+
+    // ---- SCREEN 2: MAP SETUP ----
+    const map2 = L.map('map2').setView([FIXED_LAT, FIXED_LNG], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19
+    }).addTo(map2);
+
+    const fixedMarker = L.marker([FIXED_LAT, FIXED_LNG]).addTo(map2);
+    let destMarker = null;
+
+    // Look up the fixed location's real name on load
+    reverseGeocode(FIXED_LAT, FIXED_LNG).then(name => {
+      fixedLocationName = name;
+      document.getElementById('pillName').textContent = name;
+      document.getElementById('yourLocationValue').textContent = name;
+      fixedMarker.bindPopup(name);
+    });
+
+    map2.on('click', async function (e) {
+      destLat = e.latlng.lat;
+      destLng = e.latlng.lng;
+
+      document.getElementById('destValue').textContent = "Looking up name...";
+      document.getElementById('findRouteBtn').style.display = "none";
+
+      if (destMarker) map2.removeLayer(destMarker);
+      destMarker = L.marker([destLat, destLng]).addTo(map2);
+
+      destLocationName = await reverseGeocode(destLat, destLng);
+      document.getElementById('destValue').textContent = destLocationName;
+      destMarker.bindPopup(destLocationName).openPopup();
+      document.getElementById('findRouteBtn').style.display = "block";
+    });
+
+    // ---- FIND ROUTE BUTTON ----
+    document.getElementById('findRouteBtn').addEventListener('click', async () => {
+      document.getElementById('findRouteBtn').textContent = "Calculating...";
+      const route = await getRoute(FIXED_LAT, FIXED_LNG, destLat, destLng);
+      document.getElementById('findRouteBtn').textContent = "Find Shortest Route";
+
+      if (!route) {
+        alert("Could not calculate route. Please try a different destination.");
+        return;
+      }
+
+      document.getElementById('statDistance').textContent = route.distanceKm + " Km";
+      document.getElementById('statTime').textContent = route.durationMin + " min";
+
+      showScreen('screen3');
+      setTimeout(() => {
+        map3.invalidateSize();
+        drawRoute(route);
+      }, 100);
+    });
+
+    // ---- SCREEN 3: MAP SETUP ----
+    const map3 = L.map('map3').setView([FIXED_LAT, FIXED_LNG], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19
+    }).addTo(map3);
+
+    let routeLine = null;
+    let map3FixedMarker = null;
+    let map3DestMarker = null;
+
+    function drawRoute(route) {
+      if (routeLine) map3.removeLayer(routeLine);
+      if (map3FixedMarker) map3.removeLayer(map3FixedMarker);
+      if (map3DestMarker) map3.removeLayer(map3DestMarker);
+
+      routeLine = L.polyline(route.coords, { color: '#1ABC9C', weight: 5 }).addTo(map3);
+      map3FixedMarker = L.marker([FIXED_LAT, FIXED_LNG]).addTo(map3).bindPopup(fixedLocationName);
+      map3DestMarker = L.marker([destLat, destLng]).addTo(map3).bindPopup(destLocationName);
+
+      map3.fitBounds(routeLine.getBounds(), { padding: [30, 30] });
+    }
+
+    document.getElementById('backBtn3').addEventListener('click', () => {
+      showScreen('screen2');
+      setTimeout(() => map2.invalidateSize(), 100);
+    });
+  </script>
+</body>
+</html>
