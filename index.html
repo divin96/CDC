@@ -12,13 +12,6 @@
   .screen { display:none; height:100%; width:100%; flex-direction:column; }
   .screen.active { display:flex; }
 
-  /* ---- SCREEN 1 ---- */
-  #screen1 { background:white; align-items:center; justify-content:space-between; padding:40px 28px 32px; text-align:center; }
-  #screen1 .welcome-to { font-size:14px; color:var(--gray); }
-  #screen1 .brand { font-size:32px; font-weight:700; color:var(--teal); }
-  #screen1 .tagline { font-size:16px; font-weight:700; color:var(--ink); margin-top:6px; }
-  #screen1 .desc { font-size:13px; color:var(--gray); line-height:1.6; margin-top:4px; max-width:260px; }
-  #screen1 button { width:100%; background:var(--teal); color:white; border:none; border-radius:14px; padding:16px; font-size:15px; font-weight:700; cursor:pointer; }
 
   /* ---- SCREEN 2 ---- */
   #screen2 { position:relative; }
@@ -77,34 +70,7 @@
 </head>
 <body>
 
-<!-- SCREEN 1 -->
-<div id="screen1" class="screen active">
-  <div></div>
-  <svg width="260" height="160" viewBox="0 0 280 180" xmlns="http://www.w3.org/2000/svg">
-    <g transform="rotate(-6 140 90)">
-      <rect x="40" y="40" width="200" height="110" rx="6" fill="#F4F6F8" stroke="#E2E6EA" stroke-width="1.5"/>
-      <line x1="40" y1="75" x2="240" y2="75" stroke="#E2E6EA" stroke-width="1.5"/>
-      <line x1="40" y1="110" x2="240" y2="110" stroke="#E2E6EA" stroke-width="1.5"/>
-      <line x1="90" y1="40" x2="90" y2="150" stroke="#E2E6EA" stroke-width="1.5"/>
-      <line x1="170" y1="40" x2="170" y2="150" stroke="#E2E6EA" stroke-width="1.5"/>
-      <rect x="55" y="50" width="25" height="18" fill="#D7DEE3" rx="2"/>
-      <rect x="190" y="115" width="30" height="20" fill="#D7DEE3" rx="2"/>
-      <path d="M70 130 Q120 100 150 90 Q190 78 205 55" stroke="#FF5A5F" stroke-width="2.5" fill="none" stroke-dasharray="1 6" stroke-linecap="round"/>
-    </g>
-    <g transform="translate(60,118)"><circle r="10" fill="#FF5A5F"/><circle r="4" fill="white"/></g>
-    <g transform="translate(212,48)"><circle r="10" fill="#FF5A5F"/><circle r="4" fill="white"/></g>
-  </svg>
-  <div>
-    <p class="welcome-to">Welcome to</p>
-    <p class="brand">FlowGo</p>
-    <p class="tagline">Save your time with us</p>
-    <p class="desc">The best app for traffic handlers of the century to save time and make your day great!</p>
-  </div>
-  <button id="getStartedBtn">Get Started</button>
-</div>
-
-<!-- SCREEN 2 -->
-<div id="screen2" class="screen">
+<div id="screen2" class="screen active">
   <div class="pill-badge">📍 <span id="pillName">Locating...</span></div>
   <div id="map2"></div>
   <div id="card2">
@@ -214,10 +180,6 @@
     map2.setView([lat, lng], 14);
   }
 
-  // ---- SCREEN 1 ----
-  document.getElementById('getStartedBtn').addEventListener('click', () => {
-    showScreen('screen2');
-    setTimeout(() => map2.invalidateSize(), 100);
   });
 
   // ---- SCREEN 2: MAP ----
